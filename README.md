@@ -1,4 +1,7 @@
+# kafka-spring
 
+Архитектурная схема проекта.
+![alt text](https://github.com/firsovroman/Kafka-Demo-Clients-Java/blob/main/.doc/kafka.png)
 
 Создаем отдельную подсеть для работы Kafka:
 
