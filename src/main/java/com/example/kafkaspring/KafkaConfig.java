@@ -1,6 +1,9 @@
 package com.example.kafkaspring;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -8,13 +11,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Configuration
 @EnableKafka
 public class KafkaConfig {
@@ -30,7 +32,22 @@ public class KafkaConfig {
     }
 
     @Bean
-    public DefaultKafkaProducerFactory<String, String> producerFactory() {
+    public ProducerFactory<String, String> producerFactory() {
+
+        ProducerFactory<String, String> producerFactory = new DefaultKafkaProducerFactory<>(producerConfigs());
+        producerFactory.addListener(new ProducerFactory.Listener<String, String>() {
+            @Override
+            public void producerAdded(String id, Producer<String, String> producer) {
+                log.info("Добавлен новый Producer with id: " + id);
+                ProducerFactory.Listener.super.producerAdded(id, producer);
+            }
+
+            @Override
+            public void producerRemoved(String id, Producer<String, String> producer) {
+                ProducerFactory.Listener.super.producerRemoved(id, producer);
+            }
+        });
+
         return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
 
@@ -51,8 +68,22 @@ public class KafkaConfig {
     }
 
     @Bean
-    public DefaultKafkaConsumerFactory<String, String> consumerFactory() {
-        return new DefaultKafkaConsumerFactory<>(consumerConfigs());
+    public ConsumerFactory<String, String> consumerFactory() {
+        ConsumerFactory<String, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerConfigs());
+        consumerFactory.addListener(new ConsumerFactory.Listener<String, String>() {
+            @Override
+            public void consumerAdded(String id, Consumer<String, String> consumer) {
+                log.info("Добавлен новы Consumer with id: " + id);
+                ConsumerFactory.Listener.super.consumerAdded(id, consumer);
+            }
+
+            @Override
+            public void consumerRemoved(String id, Consumer<String, String> consumer) {
+                ConsumerFactory.Listener.super.consumerRemoved(id, consumer);
+            }
+        });
+
+        return consumerFactory;
     }
 
     @Bean
